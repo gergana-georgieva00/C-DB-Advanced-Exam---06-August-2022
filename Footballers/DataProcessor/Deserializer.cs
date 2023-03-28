@@ -4,6 +4,7 @@
     using Footballers.Data.Models;
     using Footballers.Data.Models.Enums;
     using Footballers.DataProcessor.ImportDto;
+    using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Text;
@@ -99,7 +100,51 @@
 
         public static string ImportTeams(FootballersContext context, string jsonString)
         {
-            throw new NotImplementedException();
+            var teamDtos = JsonConvert.DeserializeObject<ImportJsonTeam[]>(jsonString);
+            var sb = new StringBuilder();
+            var teams = new List<Team>();
+            var teamsFootballers = new List<TeamFootballer>();
+
+            foreach (var teamDto in teamDtos)
+            {
+                if (!IsValid(teamDto) || teamDto.Trophies == 0)
+                {
+                    sb.AppendLine(ErrorMessage);
+                    continue;
+                }
+
+                var team = new Team()
+                {
+                    Name = teamDto.Name,
+                    Nationality = teamDto.Nationality,
+                    Trophies = teamDto.Trophies
+                };
+
+                foreach (var footballerId in teamDto.Footballers.Distinct())
+                {
+                    var footballer = context.Footballers.FirstOrDefault(f => f.Id == footballerId);
+
+                    if (footballer is null)
+                    {
+                        sb.AppendLine(ErrorMessage);
+                        continue;
+                    }
+
+                    team.TeamsFootballers.Add(new TeamFootballer()
+                    {
+                        Team = team,
+                        Footballer = footballer
+                    });
+                }
+
+                teams.Add(team);
+                sb.AppendLine(string.Format(SuccessfullyImportedTeam, team.Name, team.TeamsFootballers.Count));
+            }
+
+            context.AddRange(teams);
+            context.SaveChanges();
+
+            return sb.ToString().TrimEnd();
         }
 
         private static bool IsValid(object dto)
