@@ -3,15 +3,53 @@
     using Data;
     using Footballers.Data.Models;
     using Footballers.Data.Models.Enums;
+    using Footballers.DataProcessor.ExportDto;
     using Footballers.DataProcessor.ImportDto;
     using Newtonsoft.Json;
     using System.Globalization;
+    using System.Text;
+    using System.Xml.Serialization;
 
     public class Serializer
     {
         public static string ExportCoachesWithTheirFootballers(FootballersContext context)
         {
-            throw new NotImplementedException();
+            ExportXmlCoach[] coachesDto = context
+                .Coaches
+                .Where(c => c.Footballers.Any())
+                .ToArray()
+                .Select(c => new ExportXmlCoach()
+                {
+                    FootballersCount = c.Footballers.Count(),
+                    CoachName = c.Name,
+                    Footballers = c.Footballers.Select(f => new ExportFootballerDto
+                    {
+                        Name = f.Name,
+                        Position = f.PositionType.ToString()
+                    })
+                    .OrderBy(f => f.Name)
+                    .ToArray()
+                })
+                .OrderByDescending(c => c.Footballers.Count())
+                .ThenBy(c => c.CoachName)
+                .ToArray();
+
+            return Serialize<ExportXmlCoach[]>(coachesDto, "Coaches");
+        }
+
+        private static string Serialize<T>(T dataTransferObjects, string xmlRootAttributeName)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(T), new XmlRootAttribute(xmlRootAttributeName));
+
+            StringBuilder sb = new StringBuilder();
+            using var write = new StringWriter(sb);
+
+            XmlSerializerNamespaces xmlNamespaces = new XmlSerializerNamespaces();
+            xmlNamespaces.Add(string.Empty, string.Empty);
+
+            serializer.Serialize(write, dataTransferObjects, xmlNamespaces);
+
+            return sb.ToString();
         }
 
         public static string ExportTeamsWithMostFootballers(FootballersContext context, DateTime date)
