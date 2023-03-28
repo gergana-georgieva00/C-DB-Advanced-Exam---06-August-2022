@@ -30,10 +30,10 @@ namespace Footballers.DataProcessor.ImportDto
         public string Name { get; set; }
         [XmlElement("ContractStartDate")]
         [Required]
-        public DateTime ContractStartDate { get; set; }
+        public string ContractStartDate { get; set; }
         [XmlElement("ContractEndDate")]
         [Required]
-        public DateTime ContractEndDate { get; set; }
+        public string ContractEndDate { get; set; }
         [XmlElement("BestSkillType")]
         [Required, Range(0, 4)]
         public int BestSkillType { get; set; }

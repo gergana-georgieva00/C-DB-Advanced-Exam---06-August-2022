@@ -5,6 +5,7 @@
     using Footballers.Data.Models.Enums;
     using Footballers.DataProcessor.ImportDto;
     using System.ComponentModel.DataAnnotations;
+    using System.Globalization;
     using System.Text;
     using System.Xml.Serialization;
 
@@ -47,13 +48,26 @@
                         continue;
                     }
 
+                    DateTime validStartDate;
+                    var isStartDateValid = DateTime.TryParseExact(footballerDto.ContractStartDate, "dd/MM/yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out validStartDate);
 
+                    DateTime validEndDate;
+                    var isEndDateValid = DateTime.TryParseExact(footballerDto.ContractEndDate, "dd/MM/yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out validEndDate);
+
+                    if (!isStartDateValid || !isEndDateValid 
+                        || validStartDate < validEndDate)
+                    {
+                        sb.AppendLine(ErrorMessage);
+                        continue;
+                    }
 
                     var footballer = new Footballer()
                     {
                         Name = footballerDto.Name,
-                        ContractStartDate = footballerDto.ContractStartDate,
-                        ContractEndDate = footballerDto.ContractEndDate,
+                        ContractStartDate = validStartDate,
+                        ContractEndDate = validEndDate,
                         BestSkillType = (BestSkillType)footballerDto.BestSkillType,
                         PositionType = (PositionType)footballerDto.PositionType
                     };
