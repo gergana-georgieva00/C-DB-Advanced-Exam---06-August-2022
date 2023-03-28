@@ -58,7 +58,7 @@
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out validEndDate);
 
                     if (!isStartDateValid || !isEndDateValid 
-                        || validStartDate < validEndDate)
+                        || validEndDate < validStartDate)
                     {
                         sb.AppendLine(ErrorMessage);
                         continue;
@@ -70,7 +70,8 @@
                         ContractStartDate = validStartDate,
                         ContractEndDate = validEndDate,
                         BestSkillType = (BestSkillType)footballerDto.BestSkillType,
-                        PositionType = (PositionType)footballerDto.PositionType
+                        PositionType = (PositionType)footballerDto.PositionType,
+                        Coach = coach
                     };
 
                     footballers.Add(footballer);
@@ -78,7 +79,7 @@
 
                 coach.Footballers = footballers;
                 coaches.Add(coach);
-                sb.AppendLine(string.Format(SuccessfullyImportedCoach, coach.Name, coach.Footballers.Count()));
+                sb.AppendLine(string.Format(SuccessfullyImportedCoach, coach.Name, footballers.Count()));
             }
 
             context.AddRange(coaches);
