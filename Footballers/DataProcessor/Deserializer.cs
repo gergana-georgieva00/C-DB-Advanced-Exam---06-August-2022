@@ -77,7 +77,9 @@
                     footballers.Add(footballer);
                 }
 
-                coach.Footballers = footballers.ToArray();
+                footballers.TrimExcess();
+                
+                coach.Footballers = footballers;
                 coaches.Add(coach);
                 sb.AppendLine(string.Format(SuccessfullyImportedCoach, coach.Name, footballers.Count));
             }
